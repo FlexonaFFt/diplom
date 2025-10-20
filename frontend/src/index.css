@@ -19,3 +19,10 @@ body {
 #root {
   min-height: 100vh;
 }
+
+/* Кастомный фон для темной темы */
+@media (prefers-color-scheme: dark) {
+  .dark-bg-custom {
+    background-color: #1a1a1a !important;
+  }
+}

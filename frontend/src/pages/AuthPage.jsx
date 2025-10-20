@@ -1,6 +1,7 @@
 import { useMemo, useState } from 'react';
 import { useNavigate, Link, useLocation } from 'react-router-dom';
 import { authService } from '../services/authService';
+import Silk from '../components/SilkComponent';
 
 const AuthPage = () => {
   const location = useLocation();
@@ -38,19 +39,29 @@ const AuthPage = () => {
   };
 
   return (
-    <div className="min-h-screen flex bg-gray-100 dark:bg-gray-900">
-      {/* Левая секция: пустой серый блок */}
-      <div className="flex-1 bg-gray-200 dark:bg-gray-800" />
+    <div className="min-h-screen flex bg-gray-100 dark-bg-custom">
+      {/* Левая секция: анимированный компонент */}
+      <div className="flex-1 relative bg-gray-200 dark:bg-gray-700">
+        <Silk
+          speed={5}
+          scale={1}
+          color="#7B7481"
+          noiseIntensity={1.5}
+          rotation={0}
+        />
+        {/* Overlay для лучшей читаемости */}
+        <div className="absolute inset-0 bg-black/20 dark:bg-black/30" />
+      </div>
 
       {/* Правая секция с формой */}
-      <div className="flex-1 flex items-center justify-center px-12 bg-white dark:bg-gray-900">
+      <div className="flex-1 flex items-center justify-center px-12 bg-white dark:bg-transparent">
         <div className="w-full max-w-md">
-          <h2 className="text-3xl font-bold mb-8 text-center text-gray-900 dark:text-white">{mode === 'login' ? 'Log in' : 'Sign up'}</h2>
+          <h2 className="text-3xl font-bold mb-8 text-center text-gray-900 dark:text-gray-200">{mode === 'login' ? 'Log in' : 'Sign up'}</h2>
 
           <form onSubmit={handleSubmit} className="space-y-6">
             {/* Email поле */}
             <div>
-              <label htmlFor="email" className="block text-sm font-medium mb-2 text-gray-700 dark:text-gray-300">
+              <label htmlFor="email" className="block text-sm font-medium mb-2 text-gray-700 dark:text-gray-400">
                 Email address
               </label>
               <div className="relative">
@@ -64,7 +75,7 @@ const AuthPage = () => {
                   type="email"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  className="block w-full pl-10 pr-3 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-gray-800 border-gray-300 dark:border-gray-600 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400"
+                  className="block w-full pl-10 pr-3 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-gray-700/50 border-gray-300 dark:border-gray-600 text-gray-900 dark:text-gray-200 placeholder-gray-500 dark:placeholder-gray-400"
                   placeholder="Enter your email"
                   required
                 />
@@ -73,7 +84,7 @@ const AuthPage = () => {
 
             {mode === 'signup' && (
               <div>
-                <label htmlFor="username" className="block text-sm font-medium mb-2 text-gray-700 dark:text-gray-300">
+                <label htmlFor="username" className="block text-sm font-medium mb-2 text-gray-700 dark:text-gray-400">
                   Username
                 </label>
                 <div className="relative">
@@ -87,7 +98,7 @@ const AuthPage = () => {
                     type="text"
                     value={username}
                     onChange={(e) => setUsername(e.target.value)}
-                    className="block w-full pl-10 pr-3 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-gray-800 border-gray-300 dark:border-gray-600 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400"
+                    className="block w-full pl-10 pr-3 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-gray-700/50 border-gray-300 dark:border-gray-600 text-gray-900 dark:text-gray-200 placeholder-gray-500 dark:placeholder-gray-400"
                     placeholder="Choose a username"
                     required
                   />
@@ -97,7 +108,7 @@ const AuthPage = () => {
 
             {/* Password поле */}
             <div>
-              <label htmlFor="password" className="block text-sm font-medium mb-2 text-gray-700 dark:text-gray-300">
+              <label htmlFor="password" className="block text-sm font-medium mb-2 text-gray-700 dark:text-gray-400">
                 Password
               </label>
               <div className="relative">
@@ -133,7 +144,7 @@ const AuthPage = () => {
 
             {mode === 'signup' && (
               <div>
-                <label htmlFor="confirmPassword" className="block text-sm font-medium mb-2 text-gray-700 dark:text-gray-300">
+                <label htmlFor="confirmPassword" className="block text-sm font-medium mb-2 text-gray-700 dark:text-gray-400">
                   Confirm Password
                 </label>
                 <div className="relative">
@@ -147,7 +158,7 @@ const AuthPage = () => {
                     type="password"
                     value={confirmPassword}
                     onChange={(e) => setConfirmPassword(e.target.value)}
-                    className="block w-full pl-10 pr-3 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-gray-800 border-gray-300 dark:border-gray-600 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400"
+                    className="block w-full pl-10 pr-3 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-gray-700/50 border-gray-300 dark:border-gray-600 text-gray-900 dark:text-gray-200 placeholder-gray-500 dark:placeholder-gray-400"
                     placeholder="Confirm your password"
                     required
                   />
@@ -164,7 +175,7 @@ const AuthPage = () => {
                 onChange={(e) => setRememberPassword(e.target.checked)}
                 className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
               />
-              <label htmlFor="remember" className="ml-2 block text-sm text-gray-700 dark:text-gray-300">
+              <label htmlFor="remember" className="ml-2 block text-sm text-gray-700 dark:text-gray-400">
                 Remember password
               </label>
             </div>
@@ -180,7 +191,7 @@ const AuthPage = () => {
             <button
               type="submit"
               disabled={isLoading}
-              className="w-full bg-blue-600 text-white py-3 px-4 rounded-lg font-medium hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+              className="w-full bg-gray-600 dark:bg-gray-600/50 text-white dark:text-gray-200 py-3 px-4 rounded-lg font-medium hover:bg-gray-700 dark:hover:bg-gray-600/70 focus:outline-none focus:ring-2 focus:ring-gray-500 dark:focus:ring-gray-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
             >
               {isLoading ? (mode === 'login' ? 'Signing in...' : 'Creating account...') : (mode === 'login' ? 'Sign In' : 'Sign Up')}
             </button>
@@ -190,14 +201,14 @@ const AuthPage = () => {
               {mode === 'login' ? (
                 <>
                   <span className="text-gray-600 dark:text-gray-400">Don't have an account? </span>
-                  <Link to="/signup" className="text-blue-600 hover:text-blue-700 font-medium underline">
+                  <Link to="/signup" className="text-gray-600 dark:text-gray-300 hover:text-gray-700 dark:hover:text-gray-200 font-medium underline">
                     Sign up
                   </Link>
                 </>
               ) : (
                 <>
                   <span className="text-gray-600 dark:text-gray-400">Already have an account? </span>
-                  <Link to="/login" className="text-blue-600 hover:text-blue-700 font-medium underline">
+                  <Link to="/login" className="text-gray-600 dark:text-gray-300 hover:text-gray-700 dark:hover:text-gray-200 font-medium underline">
                     Sign in
                   </Link>
                 </>
@@ -207,10 +218,10 @@ const AuthPage = () => {
             {/* Divider */}
             <div className="relative">
               <div className="absolute inset-0 flex items-center">
-                <div className="w-full border-t border-gray-300 dark:border-gray-700" />
+                <div className="w-full border-t border-gray-300 dark:border-gray-600" />
               </div>
               <div className="relative flex justify-center text-sm">
-                <span className="px-2 bg-white dark:bg-gray-900 text-gray-500 dark:text-gray-400">Or</span>
+                <span className="px-2 bg-white dark:bg-gray-800 text-gray-500 dark:text-gray-400">Or</span>
               </div>
             </div>
 
