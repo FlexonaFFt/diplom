@@ -1,14 +1,17 @@
-import { useState } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
+import { useMemo, useState } from 'react';
+import { useNavigate, Link, useLocation } from 'react-router-dom';
 import { authService } from '../services/authService';
 
 const AuthPage = () => {
-  const [email, setEmail] = useState('test@saberali.co');
+  const location = useLocation();
+  const mode = useMemo(() => (location.pathname === '/signup' ? 'signup' : 'login'), [location.pathname]);
+  const [email, setEmail] = useState('');
+  const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
   const [rememberPassword, setRememberPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
-  const [isDarkMode, setIsDarkMode] = useState(false);
   const navigate = useNavigate();
 
   const handleSubmit = async (e) => {
@@ -17,8 +20,16 @@ const AuthPage = () => {
     setError('');
 
     try {
-      await authService.login(email, password);
-      navigate('/dashboard');
+      if (mode === 'login') {
+        await authService.login(email, password);
+        navigate('/dashboard');
+      } else {
+        if (password !== confirmPassword) {
+          throw new Error('Пароли не совпадают');
+        }
+        await authService.register(email, username, password);
+        navigate('/login');
+      }
     } catch (err) {
       setError(err.message || 'Ошибка входа');
     } finally {
@@ -26,77 +37,20 @@ const AuthPage = () => {
     }
   };
 
-  const handleGoogleLogin = () => {
-    console.log('Google login clicked');
-  };
-
   return (
-    <div className={`min-h-screen flex ${isDarkMode ? 'bg-gray-900' : ''}`}>
-      {/* Переключатель темы */}
-      <button
-        onClick={() => setIsDarkMode(!isDarkMode)}
-        className="fixed top-4 right-4 z-50 p-2 rounded-full bg-white shadow-lg hover:bg-gray-100 transition-colors"
-      >
-        {isDarkMode ? (
-          <svg className="w-6 h-6 text-yellow-500" fill="currentColor" viewBox="0 0 24 24">
-            <path d="M12 2.25a.75.75 0 01.75.75v2.25a.75.75 0 01-1.5 0V3a.75.75 0 01.75-.75zM7.5 12a4.5 4.5 0 119 0 4.5 4.5 0 01-9 0zM18.894 6.166a.75.75 0 00-1.06 0l-1.591 1.59a.75.75 0 101.06 1.061l1.591-1.59a.75.75 0 000-1.06zM21.75 12a.75.75 0 01-.75.75h-2.25a.75.75 0 010-1.5H21a.75.75 0 01.75.75zM17.834 18.894a.75.75 0 001.06 0l1.591-1.591a.75.75 0 00-1.06-1.06l-1.591 1.59a.75.75 0 000 1.061zM12 18a.75.75 0 01.75.75V21a.75.75 0 01-1.5 0v-2.25A.75.75 0 0112 18zM7.758 17.303a.75.75 0 00-1.061-1.06l-1.591 1.59a.75.75 0 001.06 1.061l1.591-1.59zM6 12a.75.75 0 01-.75.75H3a.75.75 0 010-1.5h2.25A.75.75 0 016 12zM6.697 7.757a.75.75 0 001.06-1.06l-1.59-1.591a.75.75 0 00-1.061 1.06l1.59 1.591z"/>
-          </svg>
-        ) : (
-          <svg className="w-6 h-6 text-gray-700" fill="currentColor" viewBox="0 0 24 24">
-            <path fillRule="evenodd" d="M9.528 1.718a.75.75 0 01.162.819A8.97 8.97 0 009 6a9 9 0 009 9 9 9 0 009-9 8.97 8.97 0 00-.69-3.463.75.75 0 01.162-.819 1.5 1.5 0 011.98-.163l.04.03a.75.75 0 01.163.819A8.97 8.97 0 0021 6a9 9 0 01-9 9 9 9 0 01-9-9 8.97 8.97 0 00.69-3.463.75.75 0 01.162-.819l.04-.03a1.5 1.5 0 011.98.163zM15 6a3 3 0 11-6 0 3 3 0 016 0z" clipRule="evenodd" />
-          </svg>
-        )}
-      </button>
-
-      {/* Левая синяя секция */}
-      <div className="flex-1 bg-gradient-to-br from-blue-600 to-blue-800 relative overflow-hidden">
-        {/* Декоративные элементы */}
-        <div className="absolute bottom-0 left-0 right-0">
-          <svg className="w-full h-32" viewBox="0 0 1200 120" preserveAspectRatio="none">
-            <path d="M0,0V46.29c47.79,22.2,103.59,32.17,158,28,70.36-5.37,136.33-33.31,206.8-37.5C438.64,32.43,512.34,53.67,583,72.05c69.27,18,138.3,24.88,209.4,13.08,36.15-6,69.85-17.84,104.45-29.34C989.49,25,1113-14.29,1200,52.47V0Z" opacity=".25" fill="white" />
-            <path d="M0,0V15.81C13,36.92,27.64,56.86,47.69,72.05,99.41,111.27,165,111,224.58,91.58c31.15-10.15,60.09-26.07,89.67-39.8,40.92-19,84.73-46,130.83-49.67,36.26-2.85,70.9,9.42,98.6,31.56,31.77,25.39,62.32,62,103.63,73,40.44,10.79,81.35-6.69,119.13-24.28s75.16-39,116.92-43.05c59.73-5.85,113.28,22.88,168.9,38.84,30.2,8.66,59,6.17,87.09-7.5,22.43-10.89,48-26.93,60.65-49.24V0Z" opacity=".5" fill="white" />
-            <path d="M0,0V5.63C149.93,59,314.09,71.32,475.83,42.57c43-7.64,84.23-20.12,127.61-26.46,59-8.63,112.48,12.24,165.56,35.4C827.93,77.22,886,95.24,951.2,90c86.53-7,172.46-45.71,248.8-84.81V0Z" fill="white" />
-          </svg>
-        </div>
-
-        <div className="relative z-10 h-full flex flex-col justify-center px-12 text-white">
-          {/* Логотип */}
-          <div className="mb-8">
-            <div className="w-12 h-12 bg-white rounded-full flex items-center justify-center mb-6">
-              <svg className="w-8 h-8 text-blue-600" fill="currentColor" viewBox="0 0 24 24">
-                <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/>
-              </svg>
-            </div>
-          </div>
-
-          {/* Заголовок и описание */}
-          <div className="mb-12">
-            <h1 className="text-4xl font-bold mb-4 leading-tight">
-              Designed for full logistic Support
-            </h1>
-            <p className="text-xl text-blue-100 leading-relaxed">
-              View all the analytics and grow your business from anywhere!
-            </p>
-          </div>
-
-          {/* Индикаторы */}
-          <div className="flex space-x-2">
-            <div className="w-2 h-2 bg-white rounded-full"></div>
-            <div className="w-2 h-2 bg-white/50 rounded-full"></div>
-            <div className="w-2 h-2 bg-white/50 rounded-full"></div>
-          </div>
-        </div>
-      </div>
+    <div className="min-h-screen flex bg-gray-100 dark:bg-gray-900">
+      {/* Левая секция: пустой серый блок */}
+      <div className="flex-1 bg-gray-200 dark:bg-gray-800" />
 
       {/* Правая секция с формой */}
-      <div className={`flex-1 flex items-center justify-center px-12 ${isDarkMode ? 'bg-gray-900' : 'bg-white'}`}>
+      <div className="flex-1 flex items-center justify-center px-12 bg-white dark:bg-gray-900">
         <div className="w-full max-w-md">
-          <h2 className={`text-3xl font-bold mb-8 text-center ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>Log in</h2>
+          <h2 className="text-3xl font-bold mb-8 text-center text-gray-900 dark:text-white">{mode === 'login' ? 'Log in' : 'Sign up'}</h2>
 
           <form onSubmit={handleSubmit} className="space-y-6">
             {/* Email поле */}
             <div>
-              <label htmlFor="email" className={`block text-sm font-medium mb-2 ${isDarkMode ? 'text-gray-300' : 'text-gray-700'}`}>
+              <label htmlFor="email" className="block text-sm font-medium mb-2 text-gray-700 dark:text-gray-300">
                 Email address
               </label>
               <div className="relative">
@@ -110,20 +64,40 @@ const AuthPage = () => {
                   type="email"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  className={`block w-full pl-10 pr-3 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
-                    isDarkMode
-                      ? 'bg-gray-800 border-gray-600 text-white placeholder-gray-400'
-                      : 'bg-white border-gray-300 text-gray-900 placeholder-gray-500'
-                  }`}
+                  className="block w-full pl-10 pr-3 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-gray-800 border-gray-300 dark:border-gray-600 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400"
                   placeholder="Enter your email"
                   required
                 />
               </div>
             </div>
 
+            {mode === 'signup' && (
+              <div>
+                <label htmlFor="username" className="block text-sm font-medium mb-2 text-gray-700 dark:text-gray-300">
+                  Username
+                </label>
+                <div className="relative">
+                  <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                    <svg className="h-5 w-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                    </svg>
+                  </div>
+                  <input
+                    id="username"
+                    type="text"
+                    value={username}
+                    onChange={(e) => setUsername(e.target.value)}
+                    className="block w-full pl-10 pr-3 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-gray-800 border-gray-300 dark:border-gray-600 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400"
+                    placeholder="Choose a username"
+                    required
+                  />
+                </div>
+              </div>
+            )}
+
             {/* Password поле */}
             <div>
-              <label htmlFor="password" className={`block text-sm font-medium mb-2 ${isDarkMode ? 'text-gray-300' : 'text-gray-700'}`}>
+              <label htmlFor="password" className="block text-sm font-medium mb-2 text-gray-700 dark:text-gray-300">
                 Password
               </label>
               <div className="relative">
@@ -137,11 +111,7 @@ const AuthPage = () => {
                   type="password"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  className={`block w-full pl-10 pr-10 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
-                    isDarkMode
-                      ? 'bg-gray-800 border-gray-600 text-white placeholder-gray-400'
-                      : 'bg-white border-gray-300 text-gray-900 placeholder-gray-500'
-                  }`}
+                  className="block w-full pl-10 pr-10 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-gray-800 border-gray-300 dark:border-gray-600 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400"
                   placeholder="Enter your password"
                   required
                 />
@@ -161,6 +131,30 @@ const AuthPage = () => {
               </div>
             </div>
 
+            {mode === 'signup' && (
+              <div>
+                <label htmlFor="confirmPassword" className="block text-sm font-medium mb-2 text-gray-700 dark:text-gray-300">
+                  Confirm Password
+                </label>
+                <div className="relative">
+                  <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                    <svg className="h-5 w-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+                    </svg>
+                  </div>
+                  <input
+                    id="confirmPassword"
+                    type="password"
+                    value={confirmPassword}
+                    onChange={(e) => setConfirmPassword(e.target.value)}
+                    className="block w-full pl-10 pr-3 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-gray-800 border-gray-300 dark:border-gray-600 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400"
+                    placeholder="Confirm your password"
+                    required
+                  />
+                </div>
+              </div>
+            )}
+
             {/* Remember password checkbox */}
             <div className="flex items-center">
               <input
@@ -170,16 +164,14 @@ const AuthPage = () => {
                 onChange={(e) => setRememberPassword(e.target.checked)}
                 className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
               />
-              <label htmlFor="remember" className={`ml-2 block text-sm ${isDarkMode ? 'text-gray-300' : 'text-gray-700'}`}>
+              <label htmlFor="remember" className="ml-2 block text-sm text-gray-700 dark:text-gray-300">
                 Remember password
               </label>
             </div>
 
             {/* Error message */}
             {error && (
-              <div className={`text-red-600 text-sm text-center p-3 rounded-lg ${
-                isDarkMode ? 'bg-red-900/20' : 'bg-red-50'
-              }`}>
+              <div className="text-red-600 dark:text-red-400 text-sm text-center p-3 rounded-lg bg-red-50 dark:bg-red-900/20">
                 {error}
               </div>
             )}
@@ -190,48 +182,40 @@ const AuthPage = () => {
               disabled={isLoading}
               className="w-full bg-blue-600 text-white py-3 px-4 rounded-lg font-medium hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
             >
-              {isLoading ? 'Signing in...' : 'Sign In'}
+              {isLoading ? (mode === 'login' ? 'Signing in...' : 'Creating account...') : (mode === 'login' ? 'Sign In' : 'Sign Up')}
             </button>
 
             {/* Sign up link */}
             <div className="text-center">
-              <span className={isDarkMode ? 'text-gray-400' : 'text-gray-600'}>Don't have an account? </span>
-              <Link
-                to="/signup"
-                className="text-blue-600 hover:text-blue-700 font-medium underline"
-              >
-                Sign up
-              </Link>
+              {mode === 'login' ? (
+                <>
+                  <span className="text-gray-600 dark:text-gray-400">Don't have an account? </span>
+                  <Link to="/signup" className="text-blue-600 hover:text-blue-700 font-medium underline">
+                    Sign up
+                  </Link>
+                </>
+              ) : (
+                <>
+                  <span className="text-gray-600 dark:text-gray-400">Already have an account? </span>
+                  <Link to="/login" className="text-blue-600 hover:text-blue-700 font-medium underline">
+                    Sign in
+                  </Link>
+                </>
+              )}
             </div>
 
             {/* Divider */}
             <div className="relative">
               <div className="absolute inset-0 flex items-center">
-                <div className={`w-full border-t ${isDarkMode ? 'border-gray-600' : 'border-gray-300'}`} />
+                <div className="w-full border-t border-gray-300 dark:border-gray-700" />
               </div>
               <div className="relative flex justify-center text-sm">
-                <span className={`px-2 ${isDarkMode ? 'bg-gray-900 text-gray-400' : 'bg-white text-gray-500'}`}>Or</span>
+                <span className="px-2 bg-white dark:bg-gray-900 text-gray-500 dark:text-gray-400">Or</span>
               </div>
             </div>
 
-            {/* Google login button */}
-            <button
-              type="button"
-              onClick={handleGoogleLogin}
-              className={`w-full py-3 px-4 rounded-lg font-medium focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-colors flex items-center justify-center space-x-2 ${
-                isDarkMode
-                  ? 'bg-gray-800 border border-gray-600 text-gray-300 hover:bg-gray-700'
-                  : 'bg-white border border-gray-300 text-gray-700 hover:bg-gray-50'
-              }`}
-            >
-              <svg className="w-5 h-5" viewBox="0 0 24 24">
-                <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
-                <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
-                <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/>
-                <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
-              </svg>
-              <span>Log in with google</span>
-            </button>
+            {/* Secondary action (optional) */}
+            <div />
           </form>
         </div>
       </div>
