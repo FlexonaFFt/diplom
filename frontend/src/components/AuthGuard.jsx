@@ -1,11 +1,12 @@
 import { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { authService } from '../services/authService';
 
 const AuthGuard = ({ children }) => {
   const [isLoading, setIsLoading] = useState(true);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const navigate = useNavigate();
+  const location = useLocation();
 
   useEffect(() => {
     const checkAuth = async () => {
@@ -20,7 +21,12 @@ const AuthGuard = ({ children }) => {
         try {
           await authService.getCurrentUser();
           setIsAuthenticated(true);
-          navigate('/dashboard');
+          
+          // Перенаправляем на dashboard только если пользователь на странице логина или регистрации
+          const publicPaths = ['/login', '/signup', '/'];
+          if (publicPaths.includes(location.pathname)) {
+            navigate('/dashboard');
+          }
         } catch (error) {
           // Токен недействителен, очищаем его
           console.log('Token is invalid, clearing storage');
@@ -35,7 +41,7 @@ const AuthGuard = ({ children }) => {
     };
 
     checkAuth();
-  }, [navigate]);
+  }, [navigate, location.pathname]);
 
   if (isLoading) {
     return (

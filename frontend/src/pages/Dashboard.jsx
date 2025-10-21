@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import { authService } from '../services/authService';
 
 const Dashboard = () => {
@@ -52,47 +52,69 @@ const Dashboard = () => {
 
   return (
     <div className="min-h-screen bg-gray-100">
-      {/* Header */}
-      <header className="bg-white shadow-sm border-b">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center h-16">
-            <div className="flex items-center">
-              <h1 className="text-xl font-semibold text-gray-900">Dashboard</h1>
-            </div>
-            <div className="flex items-center space-x-4">
-              <span className="text-sm text-gray-700">
-                Привет, {user?.username || user?.email}!
-              </span>
-              <button
-                onClick={handleLogout}
-                className="bg-red-600 text-white px-4 py-2 rounded-lg text-sm hover:bg-red-700 transition-colors"
-              >
-                Выйти
-              </button>
-            </div>
+      <header className="bg-white shadow">
+        <div className="max-w-7xl mx-auto py-4 px-4 sm:px-6 lg:px-8 flex justify-between items-center">
+          <h1 className="text-2xl font-bold text-gray-900">Платформа программирования</h1>
+          <div className="flex items-center space-x-4">
+            <span className="text-gray-600">Привет, {user?.username || 'Пользователь'}</span>
+            <button
+              onClick={handleLogout}
+              className="px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700"
+            >
+              Выйти
+            </button>
           </div>
         </div>
       </header>
 
-      {/* Main content */}
       <main className="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
         <div className="px-4 py-6 sm:px-0">
-          <div className="border-4 border-dashed border-gray-200 rounded-lg h-96 flex items-center justify-center">
-            <div className="text-center">
-              <h2 className="text-2xl font-bold text-gray-900 mb-4">
-                Добро пожаловать в Dashboard!
-              </h2>
-              <p className="text-gray-600 mb-4">
-                Вы успешно вошли в систему.
-              </p>
-              <div className="bg-white p-6 rounded-lg shadow-sm max-w-md mx-auto">
-                <h3 className="text-lg font-medium text-gray-900 mb-2">Информация о пользователе:</h3>
-                <div className="space-y-2 text-sm text-gray-600">
-                  <p><strong>ID:</strong> {user?.id}</p>
-                  <p><strong>Email:</strong> {user?.email}</p>
-                  <p><strong>Username:</strong> {user?.username}</p>
-                  <p><strong>Статус:</strong> {user?.is_active ? 'Активен' : 'Неактивен'}</p>
-                  <p><strong>Дата регистрации:</strong> {user?.created_at ? new Date(user.created_at).toLocaleDateString('ru-RU') : 'Неизвестно'}</p>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <div className="bg-white overflow-hidden shadow rounded-lg">
+              <div className="px-4 py-5 sm:p-6">
+                <h3 className="text-lg font-medium text-gray-900">Задачи</h3>
+                <p className="mt-1 text-sm text-gray-600">
+                  Решайте алгоритмические задачи разной сложности
+                </p>
+                <div className="mt-4">
+                  <Link
+                    to="/tasks"
+                    className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-indigo-600 hover:bg-indigo-700"
+                  >
+                    Перейти к задачам
+                  </Link>
+                </div>
+              </div>
+            </div>
+
+            <div className="bg-white overflow-hidden shadow rounded-lg">
+              <div className="px-4 py-5 sm:p-6">
+                <h3 className="text-lg font-medium text-gray-900">Соревнования</h3>
+                <p className="mt-1 text-sm text-gray-600">
+                  Участвуйте в соревнованиях и улучшайте свои навыки
+                </p>
+                <div className="mt-4">
+                  <button
+                    className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-indigo-600 hover:bg-indigo-700"
+                  >
+                    Скоро будет доступно
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            <div className="bg-white overflow-hidden shadow rounded-lg">
+              <div className="px-4 py-5 sm:p-6">
+                <h3 className="text-lg font-medium text-gray-900">Профиль</h3>
+                <p className="mt-1 text-sm text-gray-600">
+                  Просмотрите свой прогресс и статистику
+                </p>
+                <div className="mt-4">
+                  <button
+                    className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-indigo-600 hover:bg-indigo-700"
+                  >
+                    Скоро будет доступно
+                  </button>
                 </div>
               </div>
             </div>

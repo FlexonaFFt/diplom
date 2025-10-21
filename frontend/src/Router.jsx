@@ -1,6 +1,8 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import AuthPage from './pages/AuthPage';
 import Dashboard from './pages/Dashboard';
+import TasksPage from './pages/TasksPage';
+import TaskPage from './pages/TaskPage';
 import AuthGuard from './components/AuthGuard';
 import ProtectedRoute from './components/ProtectedRoute';
 
@@ -16,6 +18,22 @@ function Router() {
             element={
               <ProtectedRoute>
                 <Dashboard />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/tasks"
+            element={
+              <ProtectedRoute>
+                <TasksPage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/task/:taskId"
+            element={
+              <ProtectedRoute>
+                <TaskPage />
               </ProtectedRoute>
             }
           />
