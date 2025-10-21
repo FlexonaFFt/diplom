@@ -3,6 +3,10 @@ from fastapi.middleware.cors import CORSMiddleware
 from app.config import settings
 from app.database import engine, Base
 from app.auth import router as auth_router
+from app.judge_router import router as judge_router
+
+# Import judge models so that metadata is aware of all tables before create_all
+from app import judge_models  # noqa: F401
 
 Base.metadata.create_all(bind=engine)
 
@@ -23,6 +27,7 @@ app.add_middleware(
 )
 
 app.include_router(auth_router, prefix="/api/kontest/auth")
+app.include_router(judge_router, prefix="/api/kontest/judge")
 
 
 @app.get("/")

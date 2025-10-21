@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { authService } from '../services/authService';
+import JudgeWorkspace from '../components/judge/JudgeWorkspace';
 
 const Dashboard = () => {
   const [user, setUser] = useState(null);
@@ -52,20 +53,18 @@ const Dashboard = () => {
 
   return (
     <div className="min-h-screen bg-gray-100">
-      {/* Header */}
-      <header className="bg-white shadow-sm border-b">
+      <header className="border-b bg-white shadow-sm">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center h-16">
-            <div className="flex items-center">
-              <h1 className="text-xl font-semibold text-gray-900">Dashboard</h1>
+          <div className="flex h-16 items-center justify-between">
+            <div>
+              <h1 className="text-xl font-semibold text-gray-900">Контрольная панель</h1>
+              <p className="text-xs text-gray-500">Управление пользователями и контестом</p>
             </div>
-            <div className="flex items-center space-x-4">
-              <span className="text-sm text-gray-700">
-                Привет, {user?.username || user?.email}!
-              </span>
+            <div className="flex items-center gap-4">
+              <span className="text-sm text-gray-700">Привет, {user?.username || user?.email}!</span>
               <button
                 onClick={handleLogout}
-                className="bg-red-600 text-white px-4 py-2 rounded-lg text-sm hover:bg-red-700 transition-colors"
+                className="rounded-lg bg-red-600 px-4 py-2 text-sm font-medium text-white transition hover:bg-red-700"
               >
                 Выйти
               </button>
@@ -74,30 +73,33 @@ const Dashboard = () => {
         </div>
       </header>
 
-      {/* Main content */}
-      <main className="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
-        <div className="px-4 py-6 sm:px-0">
-          <div className="border-4 border-dashed border-gray-200 rounded-lg h-96 flex items-center justify-center">
-            <div className="text-center">
-              <h2 className="text-2xl font-bold text-gray-900 mb-4">
-                Добро пожаловать в Dashboard!
-              </h2>
-              <p className="text-gray-600 mb-4">
-                Вы успешно вошли в систему.
-              </p>
-              <div className="bg-white p-6 rounded-lg shadow-sm max-w-md mx-auto">
-                <h3 className="text-lg font-medium text-gray-900 mb-2">Информация о пользователе:</h3>
-                <div className="space-y-2 text-sm text-gray-600">
-                  <p><strong>ID:</strong> {user?.id}</p>
-                  <p><strong>Email:</strong> {user?.email}</p>
-                  <p><strong>Username:</strong> {user?.username}</p>
-                  <p><strong>Статус:</strong> {user?.is_active ? 'Активен' : 'Неактивен'}</p>
-                  <p><strong>Дата регистрации:</strong> {user?.created_at ? new Date(user.created_at).toLocaleDateString('ru-RU') : 'Неизвестно'}</p>
-                </div>
-              </div>
+      <main className="max-w-7xl mx-auto space-y-6 px-4 py-6 sm:px-6 lg:px-8">
+        <section className="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm">
+          <div className="flex flex-col gap-6 md:flex-row md:items-center md:justify-between">
+            <div>
+              <h2 className="text-lg font-semibold text-gray-900">Информация о пользователе</h2>
+              <p className="text-sm text-gray-500">Статус и основные данные учетной записи</p>
+            </div>
+            <div className="grid gap-1 text-sm text-gray-600 md:text-right">
+              <span>ID: {user?.id}</span>
+              <span>Email: {user?.email}</span>
+              <span>Username: {user?.username}</span>
+              <span>Статус: {user?.is_active ? 'Активен' : 'Неактивен'}</span>
+              <span>
+                Дата регистрации:{' '}
+                {user?.created_at
+                  ? new Date(user.created_at).toLocaleDateString('ru-RU')
+                  : 'Неизвестно'}
+              </span>
             </div>
           </div>
-        </div>
+        </section>
+
+        <section className="rounded-2xl border border-gray-200 bg-white/70 p-1 shadow-sm backdrop-blur">
+          <div className="rounded-2xl bg-white p-6">
+            <JudgeWorkspace />
+          </div>
+        </section>
       </main>
     </div>
   );

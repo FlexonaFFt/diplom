@@ -1,4 +1,4 @@
-const API_BASE_URL = 'http://localhost:8000/api/kontest/auth';
+const API_BASE_URL = (import.meta.env.VITE_AUTH_API_BASE || 'http://localhost:8000/api/kontest/auth').replace(/\/$/, '');
 
 class AuthService {
   constructor() {

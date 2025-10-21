@@ -1,0 +1,40 @@
+version: "3.8"
+services:
+  backend:
+    build: ./backend
+    environment:
+      - DATABASE_URL=sqlite:////data/data.db
+      - JUDGE_IMAGE=judge-python:1.0
+      - PER_TEST_TIMEOUT_SEC=2
+      - MEM_LIMIT=256m
+      - NANO_CPUS=500000000
+      - PIDS_LIMIT=64
+      - WORKDIR_HOST=/tmp/judge-workdir
+    volumes:
+      - ./backend:/app
+      - backend_data:/data
+      - /var/run/docker.sock:/var/run/docker.sock
+      - /tmp/judge-workdir:/tmp/judge-workdir
+    ports:
+      - "8000:8000"
+    depends_on:
+      - sandbox_image
+  frontend:
+    working_dir: /app
+    image: node:20-slim
+    command: sh -lc "npm ci && npm run dev -- --host"
+    volumes:
+      - ./frontend:/app
+    environment:
+      - VITE_AUTH_API_BASE=http://localhost:8000/api/kontest/auth
+      - VITE_JUDGE_API_BASE=http://localhost:8000/api/kontest/judge
+    ports:
+      - "5173:5173"
+    depends_on:
+      - backend
+  sandbox_image:
+    build:
+      context: ./sandbox
+    image: judge-python:1.0
+volumes:
+  backend_data: {}

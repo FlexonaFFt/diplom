@@ -1,205 +1,99 @@
-# AuthKeyHub
+# Контест + Авторизация (Backend)
 
-Защищенная система аутентификации на FastAPI с JWT токенами и SQLite базой данных.
+Бэкенд объединяет систему аутентификации (JWT + SQLite) и модуль онлайн‑джаджа, который исполняет пользовательский код в изолированном Docker-контейнере.  
+REST API построено на FastAPI, ORM — SQLAlchemy 2.0.
 
 ## Возможности
+- Регистрация, логин, refresh токены (`/api/kontest/auth/*`).
+- Проверка статуса текущей сессии и logout.
+- CRUD для задач контеста (кейсов) с тестами.
+- Отправка решений и хранение результатов по каждому тесту.
+- Выполнение пользовательского Python-кода внутри sandbox-образа с лимитами CPU/памяти/процессов.
 
-- Регистрация пользователей с валидацией
-- Аутентификация с JWT токенами
-- Access токены (кратковременные) и Refresh токены (долгосрочные)
-- Защищенные маршруты
-- Статус пользователя и проверка авторизации
-- Хеширование паролей с bcrypt
-- SQLite база данных
-- CORS поддержка
-
-## Установка и запуск
-
-### 1. Установка зависимостей
+## Быстрый старт с Docker
 
 ```bash
-# Активируйте виртуальное окружение
-source venv/bin/activate  # На macOS/Linux
-# или
-venv\\Scripts\\activate  # На Windows
+# 1. Перейти в корень репозитория
+cd /Users/vladimirriasnoi/Desktop/Uni/ML/Диплом/diplom
 
-# Установите зависимости
+# 2. Собрать sandbox-образ (используется для запуска пользовательского кода)
+docker build -t judge-python:1.0 sandbox
+
+# 3. Собрать и запустить сервисы
+docker compose build
+docker compose up
+```
+
+Что происходит:
+- `sandbox_image` готовит образ `judge-python:1.0` и завершает работу (это нормально).
+- `backend` стартует на `http://localhost:8000` и получает доступ к докеру через `/var/run/docker.sock`.
+- `frontend` поднимается на `http://localhost:5173`, обращаясь к API по `http://localhost:8000`.
+
+Остановить можно `Ctrl+C`, затем при необходимости `docker compose down`.
+
+## Локальный запуск (без Docker)
+
+```bash
+cd backend
+python -m venv .venv
+source .venv/bin/activate  # Windows: .venv\Scripts\activate
 pip install -r requirements.txt
+
+# Переменные окружения (пример)
+export DATABASE_URL=sqlite:///./auth.db
+export JUDGE_IMAGE=judge-python:1.0
+export WORKDIR_HOST=/tmp/judge-workdir
+
+# Собрать sandbox-образ однократно
+cd ../sandbox
+docker build -t judge-python:1.0 .
+
+# Запустить API
+cd ../backend
+uvicorn main:app --host 0.0.0.0 --port 8000
 ```
 
-### 2. Настройка переменных окружения
+## Основные эндпоинты
 
-Файл `.env` уже создан с базовыми настройками. В продакшене обязательно измените:
-- `SECRET_KEY` - используйте криптографически стойкий ключ
-- Настройки CORS в `main.py`
+| Маршрут | Описание |
+| --- | --- |
+| `GET /docs` | Swagger UI |
+| `GET /api/kontest/auth/status` | Проверка доступности auth-сервиса |
+| `POST /api/kontest/auth/register` | Регистрация пользователя |
+| `POST /api/kontest/auth/login` | Получение access+refresh токенов |
+| `POST /api/kontest/auth/refresh` | Обновление access токена |
+| `GET /api/kontest/auth/me` | Статус текущей сессии |
+| `POST /api/kontest/judge/cases` | Создание кейса (нужен access token) |
+| `GET /api/kontest/judge/cases` | Список кейсов |
+| `POST /api/kontest/judge/submit` | Отправка решения (нужен access token) |
+| `GET /api/kontest/judge/submissions` | История посылок (нужен access token) |
 
-### 3. Запуск приложения
+Полные схемы данных см. в `app/judge_schemas.py`.
 
-```bash
-# Запуск через main.py
-python main.py
+## Конфигурация
 
-# Или через uvicorn
-uvicorn main:app --reload --host 0.0.0.0 --port 8000
-```
+Все значения читаются через `python-decouple`:
 
-Приложение будет доступно по адресу: http://localhost:8000
+| Переменная | Назначение | Значение по умолчанию |
+| --- | --- | --- |
+| `DATABASE_URL` | Подключение к БД | `sqlite:///./auth.db` |
+| `SECRET_KEY`, `ALGORITHM` | Подпись JWT | `your-super-secret-key...`, `HS256` |
+| `ACCESS_TOKEN_EXPIRE_MINUTES`, `REFRESH_TOKEN_EXPIRE_DAYS` | TTL токенов | `30`, `7` |
+| `APP_NAME`, `DEBUG` | Метаданные приложения | `AuthKeyHub`, `False` |
+| `JUDGE_IMAGE` | Имя sandbox-образа | `judge-python:1.0` |
+| `PER_TEST_TIMEOUT_SEC` | Таймаут на тест | `2` |
+| `MEM_LIMIT`, `NANO_CPUS`, `PIDS_LIMIT` | Лимиты контейнера | `256m`, `500000000`, `64` |
+| `WORKDIR_HOST` | Хостовая директория для временных файлов | `/tmp/judge-workdir` |
 
-## API Эндпоинты
+Для Docker Compose соответствующие переменные уже прокинуты в `docker-compose.yml`.
 
-### Основные маршруты
-- `GET /` - Корневая страница
-- `GET /health` - Проверка состояния приложения
-- `GET /docs` - Swagger документация
-- `GET /redoc` - ReDoc документация
-
-### Аутентификация (`/api/v1/auth`)
-
-#### `POST /api/v1/auth/register`
-Регистрация нового пользователя.
-
-**Тело запроса:**
-```json
-{
-  "email": "user@example.com",
-  "username": "username",
-  "password": "password123"
-}
-```
-
-**Ответ:**
-```json
-{
-  "id": 1,
-  "email": "user@example.com",
-  "username": "username",
-  "is_active": true,
-  "created_at": "2024-01-01T12:00:00",
-  "updated_at": null
-}
-```
-
-#### `POST /api/v1/auth/login`
-Вход в систему и получение токенов.
-
-**Тело запроса:**
-```json
-{
-  "email": "user@example.com",
-  "password": "password123"
-}
-```
-
-**Ответ:**
-```json
-{
-  "access_token": "eyJ0eXAiOiJKV1QiLCJhbGc...",
-  "refresh_token": "eyJ0eXAiOiJKV1QiLCJhbGc...",
-  "token_type": "bearer"
-}
-```
-
-#### `POST /api/v1/auth/refresh`
-Обновление access токена с помощью refresh токена.
-
-**Заголовок:** `Authorization: Bearer <refresh_token>`
-
-**Ответ:**
-```json
-{
-  "access_token": "eyJ0eXAiOiJKV1QiLCJhbGc...",
-  "refresh_token": "eyJ0eXAiOiJKV1QiLCJhbGc...",
-  "token_type": "bearer"
-}
-```
-
-#### `GET /api/v1/auth/me`
-Получение информации о текущем пользователе (защищенный маршрут).
-
-**Заголовок:** `Authorization: Bearer <access_token>`
-
-**Ответ:**
-```json
-{
-  "user": {
-    "id": 1,
-    "email": "user@example.com",
-    "username": "username",
-    "is_active": true,
-    "created_at": "2024-01-01T12:00:00",
-    "updated_at": null
-  },
-  "is_authenticated": true
-}
-```
-
-#### `POST /api/v1/auth/logout`
-Выход из системы (клиент должен удалить токены).
-
-#### `GET /api/v1/auth/status`
-Проверка работы системы аутентификации.
-
-## Настройка .env
-
-```
-# Database
-DATABASE_URL=sqlite:///./auth.db
-
-# JWT Settings
-SECRET_KEY=your-super-secret-key-change-this-in-production
-ALGORITHM=HS256
-ACCESS_TOKEN_EXPIRE_MINUTES=30
-REFRESH_TOKEN_EXPIRE_DAYS=7
-
-# Application Settings
-APP_NAME=AuthKeyHub
-DEBUG=True
-```
-
-
-## Система токенов
-
-### Access Token
-- **Срок действия:** 30 минут (настраивается в `.env`)
-- **Использование:** Для доступа к защищенным ресурсам
-- **Тип:** `"access"` в payload токена
-
-### Refresh Token
-- **Срок действия:** 7 дней (настраивается в `.env`)
-- **Использование:** Для обновления access токена
-- **Тип:** `"refresh"` в payload токена
-
-### Переключение между временной и постоянной аутентификацией
-Система поддерживает гибкое управление сессиями:
-1. **Кратковременная аутентификация:** Используй только access токен
-2. **Долгосрочная аутентификация:** Используй refresh токен для автоматического обновлени****я
-
-## Безопасность
-
-- Пароли хешируются с использованием bcrypt
-- JWT токены подписываются секретным ключом
-- Поддержка CORS для фронтенд приложений
-- Валидация всех входящих данных через Pydantic
-- Проверка активности пользователя
-
-## База данных
-
-Используется SQLite с автоматическим созданием таблиц при запуске приложения. База данных создается в файле `auth.db` в корневой папке проекта.
+## Важные детали
+- Перед запуском убедитесь, что Docker демон доступен и пользователь имеет права на `/var/run/docker.sock`.
+- Рабочая директория `WORKDIR_HOST` должна существовать (например, `mkdir -p /tmp/judge-workdir`).
+- Sandbox контейнер запускается в `network_mode=none`, с `read_only` и `cap_drop=ALL`.
+- В базе создаются таблицы `users`, `cases`, `test_cases`, `submissions`, `submission_tests`.
 
 ## Разработка
-
-Для разработки рекомендуется:
-1. Установить все зависимости из `requirements.txt`
-2. Использовать режим reload: `uvicorn main:app --reload`
-3. Настроить `DEBUG=True` в `.env`
-4. Использовать интерактивную документацию по адресу `/docs`
-
-## Производство
-
-Для продакшена обязательно:
-1. Изменить `SECRET_KEY` в `.env`
-2. Настроить правильные CORS origins
-3. Установить `DEBUG=False`
-4. Использовать HTTPS
-5. Настроить логирование
-6. Рассмотреть использование PostgreSQL вместо SQLite
+- Для быстрой перезагрузки в локальном режиме используйте `uvicorn main:app --reload`.
+- Тестовые запросы удобно выполнять через Swagger UI (`/docs`) либо коллекцию в Postman/HTTP клиенте.
+- Frontend по умолчанию ожидает, что API доступен на `http://localhost:8000`. При изменении адреса обновите `VITE_AUTH_API_BASE` и `VITE_JUDGE_API_BASE`.
