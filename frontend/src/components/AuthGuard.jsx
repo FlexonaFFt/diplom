@@ -1,29 +1,31 @@
 import { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { authService } from '../services/authService';
 
 const AuthGuard = ({ children }) => {
   const [isLoading, setIsLoading] = useState(true);
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
   const navigate = useNavigate();
+  const location = useLocation();
 
   useEffect(() => {
     const checkAuth = async () => {
       try {
-        // Проверяем, есть ли токен в localStorage
+        // 1) нет токена — просто рендерим детей (login/admin и т.д.)
         if (!authService.isAuthenticated()) {
           setIsLoading(false);
           return;
         }
 
-        // Проверяем валидность токена, пытаясь получить данные пользователя
+        // 2) есть токен — проверим валидность
         try {
           await authService.getCurrentUser();
-          setIsAuthenticated(true);
-          navigate('/dashboard');
+
+          // 2a) редиректим на dashboard ТОЛЬКО если человек пришёл на /login или /signup
+          if (location.pathname === '/login' || location.pathname === '/signup') {
+            navigate('/dashboard', { replace: true });
+          }
         } catch (error) {
-          // Токен недействителен, очищаем его
-          console.log('Token is invalid, clearing storage');
+          // Токен недействителен — чистим и не редиректим насильно
           authService.logout();
         }
       } catch (error) {
@@ -35,7 +37,7 @@ const AuthGuard = ({ children }) => {
     };
 
     checkAuth();
-  }, [navigate]);
+  }, [navigate, location.pathname]);
 
   if (isLoading) {
     return (
