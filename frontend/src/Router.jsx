@@ -46,9 +46,11 @@ function Router() {
           <Route
             path="/admin"
             element={
-              <Suspense fallback={<Loader />}>
-                <AdminLayout />
-              </Suspense>
+              <ProtectedRoute>
+                <Suspense fallback={<Loader />}>
+                  <AdminLayout />
+                </Suspense>
+              </ProtectedRoute>
             }
           >
             <Route index element={<AdminDashboard />} />
