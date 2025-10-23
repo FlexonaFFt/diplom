@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
+import { ShieldCheck } from 'lucide-react';
 import { authService } from '../services/authService';
 import JudgeWorkspace from '../components/judge/JudgeWorkspace';
 
@@ -15,7 +16,6 @@ const Dashboard = () => {
           navigate('/login');
           return;
         }
-
         const userData = await authService.getCurrentUser();
         setUser(userData.user);
       } catch (error) {
@@ -25,7 +25,6 @@ const Dashboard = () => {
         setIsLoading(false);
       }
     };
-
     loadUser();
   }, [navigate]);
 
@@ -35,7 +34,6 @@ const Dashboard = () => {
       navigate('/login');
     } catch (error) {
       console.error('Logout error:', error);
-      // Всё равно перенаправляем на страницу входа
       navigate('/login');
     }
   };
@@ -55,20 +53,44 @@ const Dashboard = () => {
     <div className="min-h-screen bg-gray-100">
       <header className="border-b bg-white shadow-sm">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex h-16 items-center justify-between">
+          {/* top row */}
+          <div className="flex min-h-16 items-center justify-between py-2">
             <div>
               <h1 className="text-xl font-semibold text-gray-900">Контрольная панель</h1>
               <p className="text-xs text-gray-500">Управление пользователями и контестом</p>
             </div>
+
             <div className="flex items-center gap-4">
+              {/* CTA в админку — на md+ в правом углу */}
+              <Link
+                to="/admin"
+                aria-label="Открыть панель администратора"
+                className="hidden md:inline-flex items-center gap-2 h-10 rounded-2xl border border-gray-300 px-4 text-sm font-medium text-gray-900 hover:bg-gray-50 hover:shadow-sm focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-600 active:scale-[0.99] transition"
+              >
+                <ShieldCheck className="w-4 h-4" aria-hidden="true" />
+                <span>Панель администратора</span>
+              </Link>
+
               <span className="text-sm text-gray-700">Привет, {user?.username || user?.email}!</span>
               <button
                 onClick={handleLogout}
-                className="rounded-lg bg-red-600 px-4 py-2 text-sm font-medium text-white transition hover:bg-red-700"
+                className="rounded-lg bg-red-600 px-4 py-2 text-sm font-medium text-white transition hover:bg-red-700 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-red-600"
               >
                 Выйти
               </button>
             </div>
+          </div>
+
+          {/* мобильная версия CTA: под заголовком, на всю ширину не растягиваем */}
+          <div className="pb-3 md:hidden">
+            <Link
+              to="/admin"
+              aria-label="Открыть панель администратора"
+              className="inline-flex items-center gap-2 h-10 rounded-2xl border border-gray-300 px-4 text-sm font-medium text-gray-900 hover:bg-gray-50 hover:shadow-sm focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-600 active:scale-[0.99] transition"
+            >
+              <ShieldCheck className="w-4 h-4" aria-hidden="true" />
+              <span>Панель администратора</span>
+            </Link>
           </div>
         </div>
       </header>

@@ -1,5 +1,6 @@
 import { useState, useMemo } from "react";
-import { Outlet, useLocation } from "react-router-dom";
+import { Outlet, useLocation, Link } from "react-router-dom";
+import { LayoutDashboard } from "lucide-react";
 import SidebarLink from "./components/SidebarLink";
 
 /**
@@ -13,7 +14,6 @@ export default function AdminLayout() {
   const [open, setOpen] = useState(false);
   const location = useLocation();
 
-  // Карта маршрутов -> заголовок в топ-баре
   const titleMap = useMemo(
     () => ({
       "/admin": "Dashboard",
@@ -30,11 +30,9 @@ export default function AdminLayout() {
 
   const currentTitle =
     titleMap[location.pathname] ||
-    // поддержим вложенные пути: берём префикс до второго слэша
     titleMap["/" + location.pathname.split("/").slice(1, 3).join("/")] ||
     "Admin";
 
-  // Навигация в сайдбаре (в порядке)
   const navItems = [
     { to: "/admin", label: "Dashboard" },
     { to: "/admin/users", label: "Users" },
@@ -50,22 +48,35 @@ export default function AdminLayout() {
     <div className="min-h-screen bg-gray-50">
       {/* Топ-бар */}
       <header className="sticky top-0 z-30 bg-white/80 backdrop-blur border-b border-gray-200">
+        {/* ВСТАВЛЕНО: здесь слева линк «Контрольная панель» */}
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 h-14 flex items-center justify-between">
-          {/* Кнопка открытия сайдбара на мобилке */}
-          <button
-            type="button"
-            className="md:hidden inline-flex items-center justify-center rounded-lg p-2 hover:bg-gray-100 text-gray-700"
-            aria-label="Open sidebar"
-            onClick={() => setOpen(true)}
-          >
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
-              <path d="M3 6h18M3 12h18M3 18h18" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
-            </svg>
-          </button>
+          {/* слева: гамбургер (мобилка) + линк-назад */}
+          <div className="flex items-center gap-2">
+            <button
+              type="button"
+              className="md:hidden inline-flex items-center justify-center rounded-lg p-2 hover:bg-gray-100 text-gray-700"
+              aria-label="Open sidebar"
+              onClick={() => setOpen(true)}
+            >
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+                <path d="M3 6h18M3 12h18M3 18h18" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
+              </svg>
+            </button>
+
+            <Link
+              to="/dashboard"
+              aria-label="Вернуться в контрольную панель"
+              className="inline-flex items-center gap-2 h-9 rounded-xl px-3 text-sm text-gray-700 hover:bg-gray-50 border border-transparent hover:border-gray-200 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-600"
+            >
+              <LayoutDashboard className="w-4 h-4" aria-hidden="true" />
+              <span className="hidden sm:inline">Контрольная панель</span>
+              <span className="sm:hidden">Панель</span>
+            </Link>
+          </div>
 
           <h1 className="text-lg font-semibold text-gray-900">{currentTitle}</h1>
 
-          {/* Плейсхолдер под правую часть топ-бара (поиск/аватар и т.п.) */}
+          {/* правый плейсхолдер */}
           <div className="w-8 md:w-14" />
         </div>
       </header>
